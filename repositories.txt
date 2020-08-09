@@ -1,0 +1,39 @@
+user@ubuntu:~/yocto/pyro/sources$ find . -name .git -exec echo ========================== {} =============================== \; -exec git -C {} remote -v \; -execdir git log --pretty=format:'%h' -n 1 \;
+========================== ./meta-openembedded/.git ===============================
+oe	https://github.com/openembedded/meta-openembedded (fetch)
+oe	https://github.com/openembedded/meta-openembedded (push)
+5e82995
+========================== ./base/.git ===============================
+freescale	https://github.com/Freescale/fsl-community-bsp-base (fetch)
+freescale	https://github.com/Freescale/fsl-community-bsp-base (push)
+b7f3aff
+========================== ./meta-qt5/.git ===============================
+origin	https://github.com/meta-qt5/meta-qt5.git (fetch)
+origin	https://github.com/meta-qt5/meta-qt5.git (push)
+31761f6
+========================== ./meta-freescale-3rdparty/.git ===============================
+freescale	https://github.com/Freescale/meta-freescale-3rdparty (fetch)
+freescale	https://github.com/Freescale/meta-freescale-3rdparty (push)
+fd3962a
+========================== ./meta-freescale-distro/.git ===============================
+freescale	https://github.com/Freescale/meta-freescale-distro (fetch)
+freescale	https://github.com/Freescale/meta-freescale-distro (push)
+cd5c7a2
+========================== ./meta-engicam/.git ===============================
+origin	https://github.com/engicam-stable/meta-engicam.git (fetch)
+origin	https://github.com/engicam-stable/meta-engicam.git (push)
+d3795c5
+========================== ./Documentation/.git ===============================
+freescale	https://github.com/Freescale/Documentation (fetch)
+freescale	https://github.com/Freescale/Documentation (push)
+24f5a21
+========================== ./meta-freescale/.git ===============================
+yocto	https://git.yoctoproject.org/git/meta-freescale (fetch)
+yocto	https://git.yoctoproject.org/git/meta-freescale (push)
+84f328e
+========================== ./poky/.git ===============================
+yocto	https://git.yoctoproject.org/git/poky (fetch)
+yocto	https://git.yoctoproject.org/git/poky (push)
+f0d128e
+user@ubuntu:~/yocto/pyro/sources$ 
+
