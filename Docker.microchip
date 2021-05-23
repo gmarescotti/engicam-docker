@@ -45,8 +45,6 @@ USER user
 # RUN cp layers/meta-st/meta-st-stm32mp/conf/eula/ST_EULA_SLA layers/meta-st/meta-st-stm32mp/conf/eula/st-image-weston
 # RUN cp layers/meta-st/meta-st-stm32mp/conf/eula/ST_EULA_SLA layers/meta-st/meta-st-stm32mp/conf/eula/stm32mp1-ugea
 
-
-
 # 0/ Create a directory
 RUN mkdir -p /home/user/dunfell
 WORKDIR /home/user/dunfell
@@ -63,8 +61,11 @@ RUN git clone git://github.com/aws/meta-aws -b dunfell
 # 4/ Clone meta-atmel layer with the proper branch ready
 RUN git clone git://github.com/linux4sam/meta-atmel.git -b dunfell
 
-# 4.5/ Clone meta-qt layer with the proper branch ready
+# 4.1/ Clone meta-qt layer with the proper branch ready
 RUN git clone git://github.com/meta-qt5/meta-qt5.git -b dunfell
+
+# 4.2/ Clone meta-qt layer with the proper branch ready
+RUN git clone git://github.com/gmarescotti/meta-dkc-colonnina.git
 
 # 5/ Enter the poky directory to configure the build system and start the build process
 WORKDIR /home/user/dunfell/poky
@@ -80,37 +81,23 @@ ENV TEMPLATECONF=../meta-atmel/conf
 ENV MACHINE sama5d27-wlsom1-ek-sd
 
 # add qt recipe
-RUN . oe-init-build-env
-RUN /bin/bash -c ". oe-init-build-env; bitbake-layers add-layer /home/user/dunfell/meta-qt5"
+RUN . oe-init-build-env && bitbake-layers add-layer /home/user/dunfell/meta-qt5
+RUN . oe-init-build-env && bitbake-layers add-layer /home/user/dunfell/meta-dkc-colonnina
 
 # add packages to distro in local.conf
-RUN echo "IMAGE_INSTALL_append  = \" qtbase qtbase-tools qtbase-plugins\"" >> build/conf/local.conf
-RUN echo "IMAGE_INSTALL_append += \" libavahi-gobject avahi-daemon libavahi-common libavahi-core libavahi-client avahi-dnsconfd libavahi-glib avahi-autoipd avahi-utils\"" >> build/conf/local.conf
-RUN echo "IMAGE_INSTALL_append += \" qtscxml\"" >> build/conf/local.conf
+# RUN echo "IMAGE_INSTALL_append  = \" qtbase qtbase-tools qtbase-plugins\"" >> build/conf/local.conf
+# RUN echo "IMAGE_INSTALL_append += \" libavahi-gobject avahi-daemon libavahi-common libavahi-core libavahi-client avahi-dnsconfd libavahi-glib avahi-autoipd avahi-utils\"" >> build/conf/local.conf
+# RUN echo "IMAGE_INSTALL_append += \" qtscxml\"" >> build/conf/local.conf
 
-RUN . oe-init-build-env && bitbake core-image-minimal
+#RUN . oe-init-build-env && bitbake core-image-minimal
 #RUN . oe-init-build-env && bitbake microchip-headless-image
+
+RUN . oe-init-build-env && bitbake dkc-colonnina-image
 RUN . oe-init-build-env && bitbake meta-toolchain-qt5
 
-# # 7/ Initialize build directory
-#RUN source oe-init-build-env build
-# 
-# # 8/ To build a small image provided by Yocto Project:
-# RUN [MACHINE=] bitbake core-image-minimal
-# 
-# # Example for sama5d2-xplained-sd SD card image:
-# RUN MACHINE=sama5d2-xplained-sd bitbake core-image-minimal
-# 
-# # 9/ To build the microchip image with no graphics support:
-# RUN [MACHINE=] bitbake microchip-headless-image
-# 
-# # Example for sama5d2-xplained-sd SD card image:
-# RUN MACHINE=sama5d2-xplained-sd bitbake microchip-headless-image
-# 
-# # 10/ To build the microchip image with graphics support (EGT):
-# RUN [MACHINE=] bitbake microchip-graphics-image
-
 ## NON COMPILA ====> RUN /bin/bash -c ". oe-init-build-env && bitbake -c populate_sdk microchip-headless-image"
+
+RUN build/tmp/deploy/sdk/poky-atmel-glibc-x86_64-meta-toolchain-qt5-cortexa5t2hf-neon-vfpv4-sama5d27-wlsom1-ek-sd-toolchain-3.1.7.sh
 
 USER root
 
