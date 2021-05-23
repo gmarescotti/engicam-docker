@@ -1,0 +1,118 @@
+# docker build --rm --network=host . -t microchip-dunfell
+# docker run --rm -i microchip-dunfell
+
+FROM debian:stretch
+
+RUN apt-get update && apt-get -y upgrade
+
+# Required Packages for the Host Development System
+RUN apt-get install -y gawk wget git-core diffstat unzip texinfo gcc-multilib \
+     build-essential chrpath socat cpio python python3 bc \
+     xz-utils debianutils iputils-ping
+
+RUN apt-get install -y vim locales curl
+
+#RUN apt-get install -y repo
+RUN curl https://storage.googleapis.com/git-repo-downloads/repo > /usr/bin/repo
+RUN chmod a+x /usr/bin/repo
+###RUN sysctl -w net.ipv4.tcp_window_scaling=0
+
+SHELL ["/bin/bash", "-c"]
+
+# Create user "user"
+RUN id user 2> /dev/null || useradd --uid 1000 --create-home user
+
+###RUN locale-gen en_US.UTF-8 && update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && \
+    locale-gen && \
+    update-locale LANG=en_US.UTF-8
+ENV LANG en_US.UTF-8
+ENV LC_ALL en_US.UTF-8
+
+USER user
+
+# RUN mkdir /home/user/openstlinux-4.19-dunfell-mp1-19-02-20
+# WORKDIR /home/user/openstlinux-4.19-dunfell-mp1-19-02-20
+
+# RUN git config --global advice.detachedHead false
+# RUN git config --global url."https://github.com/".insteadOf git@github.com:
+
+############################## RECIPES #############################
+# RUN repo init -u https://github.com/STMicroelectronics/oe-manifest.git -b refs/tags/openstlinux-4.19-dunfell-mp1-19-02-20
+# RUN repo sync
+# RUN git clone https://github.com/at91-stable/meta-at91-st.git layers/meta-at91-st -b dunfell
+# COPY envsetup.sh ./envsetup.sh
+# RUN cp layers/meta-st/meta-st-stm32mp/conf/eula/ST_EULA_SLA layers/meta-st/meta-st-stm32mp/conf/eula/st-image-weston
+# RUN cp layers/meta-st/meta-st-stm32mp/conf/eula/ST_EULA_SLA layers/meta-st/meta-st-stm32mp/conf/eula/stm32mp1-ugea
+
+
+
+# 0/ Create a directory
+RUN mkdir -p /home/user/dunfell
+WORKDIR /home/user/dunfell
+
+# 1/ Clone yocto/poky git repository with the proper branch ready
+RUN git clone git://git.yoctoproject.org/poky -b dunfell
+
+# 2/ Clone meta-openembedded git repository with the proper branch ready
+RUN git clone git://git.openembedded.org/meta-openembedded -b dunfell
+
+# 3/ Clone meta-aws git repository with the proper branch ready
+RUN git clone git://github.com/aws/meta-aws -b dunfell
+
+# 4/ Clone meta-atmel layer with the proper branch ready
+RUN git clone git://github.com/linux4sam/meta-atmel.git -b dunfell
+
+# 4.5/ Clone meta-qt layer with the proper branch ready
+RUN git clone git://github.com/meta-qt5/meta-qt5.git -b dunfell
+
+# 5/ Enter the poky directory to configure the build system and start the build process
+WORKDIR /home/user/dunfell/poky
+
+# 6/ Change TEMPLATECONF from .templateconf to:
+# export TEMPLATECONF=${TEMPLATECONF:-../meta-atmel/conf}
+# Note: If it's the first time you use Yocto Project templates, and if the
+# build directory remains from a previous use, we advice you start
+# from a fresh directory. Keep your build/conf/local.conf file for
+# reference.
+
+ENV TEMPLATECONF=../meta-atmel/conf
+ENV MACHINE sama5d27-wlsom1-ek-sd
+
+# add qt recipe
+RUN . oe-init-build-env
+RUN /bin/bash -c ". oe-init-build-env; bitbake-layers add-layer /home/user/dunfell/meta-qt5"
+
+# add packages to distro in local.conf
+RUN echo "IMAGE_INSTALL_append  = \" qtbase qtbase-tools qtbase-plugins\"" >> build/conf/local.conf
+RUN echo "IMAGE_INSTALL_append += \" libavahi-gobject avahi-daemon libavahi-common libavahi-core libavahi-client avahi-dnsconfd libavahi-glib avahi-autoipd avahi-utils\"" >> build/conf/local.conf
+RUN echo "IMAGE_INSTALL_append += \" qtscxml\"" >> build/conf/local.conf
+
+RUN . oe-init-build-env && bitbake core-image-minimal
+#RUN . oe-init-build-env && bitbake microchip-headless-image
+RUN . oe-init-build-env && bitbake meta-toolchain-qt5
+
+# # 7/ Initialize build directory
+#RUN source oe-init-build-env build
+# 
+# # 8/ To build a small image provided by Yocto Project:
+# RUN [MACHINE=] bitbake core-image-minimal
+# 
+# # Example for sama5d2-xplained-sd SD card image:
+# RUN MACHINE=sama5d2-xplained-sd bitbake core-image-minimal
+# 
+# # 9/ To build the microchip image with no graphics support:
+# RUN [MACHINE=] bitbake microchip-headless-image
+# 
+# # Example for sama5d2-xplained-sd SD card image:
+# RUN MACHINE=sama5d2-xplained-sd bitbake microchip-headless-image
+# 
+# # 10/ To build the microchip image with graphics support (EGT):
+# RUN [MACHINE=] bitbake microchip-graphics-image
+
+## NON COMPILA ====> RUN /bin/bash -c ". oe-init-build-env && bitbake -c populate_sdk microchip-headless-image"
+
+USER root
+
+CMD "/bin/bash"
+
