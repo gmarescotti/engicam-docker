@@ -1,5 +1,6 @@
 # docker build --rm --network=host . -t microchip-dunfell
-# docker run --rm -i microchip-dunfell
+# docker run --rm -it microchip-dunfell
+# sam-ba.exe -p serial -b sama5d27-wlsom1-ek -a sdmmc -c write:microchip-headless-image-sama5d27-wlsom1-ek-sd.wic
 
 FROM debian:stretch
 
@@ -93,13 +94,20 @@ RUN . oe-init-build-env && bitbake-layers add-layer /home/user/dunfell/meta-dkc-
 #RUN . oe-init-build-env && bitbake microchip-headless-image
 
 RUN . oe-init-build-env && bitbake dkc-colonnina-image
+
+# messo per risolvere problema di fallimento "meta-toolchain-qt5" forse per memoria (?)
+RUN . oe-init-build-env && bitbake qtsensors
+
 RUN . oe-init-build-env && bitbake meta-toolchain-qt5
 
-## NON COMPILA ====> RUN /bin/bash -c ". oe-init-build-env && bitbake -c populate_sdk microchip-headless-image"
-
-RUN build/tmp/deploy/sdk/poky-atmel-glibc-x86_64-meta-toolchain-qt5-cortexa5t2hf-neon-vfpv4-sama5d27-wlsom1-ek-sd-toolchain-3.1.7.sh
-
 USER root
+
+###RUN build/tmp/deploy/sdk/poky-atmel-glibc-x86_64-meta-toolchain-qt5-cortexa5t2hf-neon-vfpv4-sama5d27-wlsom1-ek-sd-toolchain-3.1.7.sh
+
+USER user
+
+# test che carica environment per compilare progetto Qt: qmake + make
+###RUN . /opt/poky-atmel/3.1.7/environment-setup-cortexa5t2hf-neon-vfpv4-poky-linux-gnueabi
 
 CMD "/bin/bash"
 
